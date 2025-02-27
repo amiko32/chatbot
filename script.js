@@ -6,6 +6,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let orderStage = 0;
     let orderInfo = { product: "", phone: "", address: "", payment: "" };
+    const SUPABASE_URL = "https://ydqfolzixkzontirgydn.supabase.co";
+    const API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlkcWZvbHppeGt6b250aXJneWRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2NDk3MzAsImV4cCI6MjA1NjIyNTczMH0.MKMEnpEriVfPSNLR0OmCweYd3-8Jp5co1zyUPd8tHpg";
 
     function displayMessage(text, sender) {
         const msg = document.createElement("div");
@@ -50,6 +52,7 @@ document.addEventListener("DOMContentLoaded", function () {
             showOrders();
         } else {
             displayMessage("Я не понял ваш запрос. Попробуйте выбрать один из вариантов.", "bot");
+            createMainButtons();
         }
     }
 
@@ -100,38 +103,67 @@ document.addEventListener("DOMContentLoaded", function () {
                 orderStage = 0;
                 saveOrder(orderInfo);
                 displayMessage("Ваш заказ сохранен! Введите 'Показать заказы' для просмотра.", "bot");
-                createButtons([
-                    { text: "Показать заказы", action: showOrders },
-                    { text: "Новый заказ", action: startOrderProcess }
-                ]);
+                createMainButtons();
                 return;
         }
     }
 
-    function saveOrder(orderData) {
-        let orders = JSON.parse(localStorage.getItem("orders")) || [];
-        orders.push(orderData);
-        localStorage.setItem("orders", JSON.stringify(orders));
+    async function saveOrder(orderData) {
+        let response = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "apikey": API_KEY,
+                "Authorization": `Bearer ${API_KEY}`,
+                "Prefer": "return=representation"
+            },
+            body: JSON.stringify(orderData)
+        });
+
+        if (response.ok) {
+            displayMessage("Ваш заказ успешно сохранен в базе данных!", "bot");
+        } else {
+            displayMessage("Ошибка при сохранении заказа. Попробуйте позже.", "bot");
+        }
     }
 
-    function showOrders() {
-        let orders = JSON.parse(localStorage.getItem("orders")) || [];
-        if (orders.length === 0) {
-            displayMessage("Нет сохраненных заказов.", "bot");
+    async function showOrders() {
+        let response = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+            method: "GET",
+            headers: {
+                "apikey": API_KEY,
+                "Authorization": `Bearer ${API_KEY}`
+            }
+        });
+
+        if (!response.ok) {
+            displayMessage("Ошибка при загрузке заказов.", "bot");
+            createMainButtons();
             return;
         }
-        displayMessage("Ваши заказы:", "bot");
-        orders.forEach((order, index) => {
-            displayMessage(`${index + 1}. Товар: ${order.product}, Телефон: ${order.phone}, Адрес: ${order.address}, Оплата: ${order.payment}`, "bot");
-        });
+
+        let orders = await response.json();
+        if (orders.length === 0) {
+            displayMessage("Нет сохраненных заказов.", "bot");
+        } else {
+            displayMessage("Ваши заказы:", "bot");
+            orders.forEach((order, index) => {
+                displayMessage(`${index + 1}. Товар: ${order.product}, Телефон: ${order.phone}, Адрес: ${order.address}, Оплата: ${order.payment}`, "bot");
+            });
+        }
+        createMainButtons();
     }
 
-    function greetUser() {
-        displayMessage("Привет! Я бот-заказов. Чем могу помочь?", "bot");
+    function createMainButtons() {
         createButtons([
             { text: "Как оформить заказ?", action: startOrderProcess },
             { text: "Показать заказы", action: showOrders }
         ]);
+    }
+
+    function greetUser() {
+        displayMessage("Привет! Я бот-заказов. Чем могу помочь?", "bot");
+        createMainButtons();
     }
 
     sendBtn.addEventListener("click", processUserInput);
