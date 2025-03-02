@@ -9,12 +9,26 @@ document.addEventListener("DOMContentLoaded", function () {
     const SUPABASE_URL = "https://ydqfolzixkzontirgydn.supabase.co";
     const API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlkcWZvbHppeGt6b250aXJneWRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2NDk3MzAsImV4cCI6MjA1NjIyNTczMH0.MKMEnpEriVfPSNLR0OmCweYd3-8Jp5co1zyUPd8tHpg";
 
+    function speakText(text) {
+        const speech = new SpeechSynthesisUtterance(text);
+        speech.lang = 'ru-RU'; 
+        speech.rate = 1; 
+        speech.pitch = 1; 
+        speech.volume = 1; 
+
+        window.speechSynthesis.speak(speech);
+    }
+
     function displayMessage(text, sender) {
         const msg = document.createElement("div");
         msg.classList.add("message", sender);
         msg.innerText = text;
         chatArea.appendChild(msg);
         chatArea.scrollTop = chatArea.scrollHeight;
+
+        if (sender === "bot") {
+            speakText(text); 
+        }
     }
 
     function createButtons(options) {
@@ -64,7 +78,7 @@ document.addEventListener("DOMContentLoaded", function () {
             { text: "Тюльпаны", action: () => processOrderFlow("Тюльпаны") },
             { text: "Пионы", action: () => processOrderFlow("Пионы") },
             { text: "Другое", action: () => {
-                displayMessage("Пожалуйста,введите:название,количество и цвет.", "bot");
+                displayMessage("Пожалуйста, введите: название, количество и цвет.", "bot");
                 orderStage = 100;
             }}
         ]);
@@ -86,6 +100,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 break;
             case 2:
                 orderInfo.phone = message;
+                localStorage.setItem("userPhone", message);
                 orderStage++;
                 displayMessage("Укажите ваш адрес доставки или напишите самовывоз.", "bot");
                 break;
@@ -121,37 +136,42 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         if (response.ok) {
-            displayMessage("Ваш заказ оформлен,ожидайте звонка оператора!", "bot");
+            displayMessage("Ваш заказ оформлен, ожидайте звонка оператора!", "bot");
         } else {
-            displayMessage("Ошибка", "bot");
+            displayMessage("Ошибка при оформлении заказа.", "bot");
         }
     }
 
     async function showOrders() {
-        let response = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
-            method: "GET",
-            headers: {
-                "apikey": API_KEY,
-                "Authorization": `Bearer ${API_KEY}`
-            }
-        });
-
-        if (!response.ok) {
-            displayMessage("Ошибка при загрузке заказов.", "bot");
-            createMainButtons();
+        const userPhone = localStorage.getItem("userPhone");
+        if (!userPhone) {
+            displayMessage("Вы ещё не оформляли заказы.", "bot");
             return;
         }
 
-        let orders = await response.json();
-        if (orders.length === 0) {
-            displayMessage("Нет сохраненных заказов.", "bot");
-        } else {
-            displayMessage("Ваши заказы:", "bot");
-            orders.forEach((order, index) => {
-                displayMessage(`${index + 1}. Товар: ${order.product}, Телефон: ${order.phone}, Адрес: ${order.address}, Оплата: ${order.payment}`, "bot");
+        try {
+            let response = await fetch(`${SUPABASE_URL}/rest/v1/orders?phone=eq.${userPhone}`, {
+                method: "GET",
+                headers: {
+                    "apikey": API_KEY,
+                    "Authorization": `Bearer ${API_KEY}`
+                }
             });
+
+            if (!response.ok) throw new Error("Ошибка при загрузке заказов");
+
+            let orders = await response.json();
+            if (orders.length === 0) {
+                displayMessage("Нет сохраненных заказов.", "bot");
+            } else {
+                displayMessage("Ваши заказы:", "bot");
+                orders.forEach((order, index) => {
+                    displayMessage(`${index + 1}. Товар: ${order.product}, Адрес: ${order.address}, Оплата: ${order.payment}`, "bot");
+                });
+            }
+        } catch (error) {
+            displayMessage("Ошибка при загрузке заказов.", "bot");
         }
-        createMainButtons();
     }
 
     function createMainButtons() {
