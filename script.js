@@ -9,26 +9,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const SUPABASE_URL = "https://ydqfolzixkzontirgydn.supabase.co";
     const API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlkcWZvbHppeGt6b250aXJneWRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2NDk3MzAsImV4cCI6MjA1NjIyNTczMH0.MKMEnpEriVfPSNLR0OmCweYd3-8Jp5co1zyUPd8tHpg";
 
-    function speakText(text) {
-        const speech = new SpeechSynthesisUtterance(text);
-        speech.lang = 'ru-RU'; 
-        speech.rate = 1; 
-        speech.pitch = 1; 
-        speech.volume = 1; 
-
-        window.speechSynthesis.speak(speech);
-    }
-
     function displayMessage(text, sender) {
         const msg = document.createElement("div");
         msg.classList.add("message", sender);
         msg.innerText = text;
         chatArea.appendChild(msg);
         chatArea.scrollTop = chatArea.scrollHeight;
-
-        if (sender === "bot") {
-            speakText(text); 
-        }
     }
 
     function createButtons(options) {
