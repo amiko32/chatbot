@@ -60,11 +60,11 @@ document.addEventListener("DOMContentLoaded", function () {
         orderStage = 1;
         displayMessage("Какой товар вас интересует?", "bot");
         createButtons([
-            { text: "Смартфон", action: () => processOrderFlow("Смартфон") },
-            { text: "Ноутбук", action: () => processOrderFlow("Ноутбук") },
-            { text: "Наушники", action: () => processOrderFlow("Наушники") },
+            { text: "Розы", action: () => processOrderFlow("Розы") },
+            { text: "Тюльпаны", action: () => processOrderFlow("Тюльпаны") },
+            { text: "Пионы", action: () => processOrderFlow("Пионы") },
             { text: "Другое", action: () => {
-                displayMessage("Пожалуйста, введите название товара.", "bot");
+                displayMessage("Пожалуйста,введите:название,количество и цвет.", "bot");
                 orderStage = 100;
             }}
         ]);
@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", function () {
             case 2:
                 orderInfo.phone = message;
                 orderStage++;
-                displayMessage("Укажите ваш адрес доставки.", "bot");
+                displayMessage("Укажите ваш адрес доставки или напишите самовывоз.", "bot");
                 break;
             case 3:
                 orderInfo.address = message;
@@ -121,9 +121,9 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         if (response.ok) {
-            displayMessage("Ваш заказ успешно сохранен в базе данных!", "bot");
+            displayMessage("Ваш заказ оформлен,ожидайте звонка оператора!", "bot");
         } else {
-            displayMessage("Ошибка при сохранении заказа. Попробуйте позже.", "bot");
+            displayMessage("Ошибка", "bot");
         }
     }
 
