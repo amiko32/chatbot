@@ -123,6 +123,22 @@
     footer{padding:22px;text-align:center;color:var(--muted);font-size:12px}
     a{color:#d84e93}
     @media (max-width:720px){.grid{grid-template-columns:1fr}}
+    /* --- Mobile tweaks (iPhone 15/15 Pro) --- */
+@media (max-width: 480px) {
+  body {font-size: 15px;}
+  .container {padding: 10px;}
+  .topbar {flex-wrap: wrap;gap: 8px;}
+  .title {font-size: 16px;}
+  .subtitle {font-size: 11px;}
+  .chat {min-height: 75vh;}
+  .composer {flex-direction: column;align-items: stretch;}
+  .composer textarea {min-height: 60px;font-size: 15px;}
+  .composer button {width: 100%;min-height: 46px;font-size: 16px;}
+  .toolbar {width: 100%;justify-content: space-between;}
+  .messages {padding: 12px 8px;}
+  .bubble {font-size: 15px;padding: 10px 12px;}
+}
+
   </style>
 </head>
 <body>
@@ -429,3 +445,4 @@
   </script>
 </body>
 </html>
+
